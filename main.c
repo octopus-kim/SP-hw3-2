@@ -59,15 +59,23 @@ int simple_shell(char **cmd, int count)
 
     if (child_pid == 0) {
         close(0); dup(fd_pipe[0]); close(fd_pipe[0]); close(fd_pipe[1]);
+        close(fd_err_pipe[0]); close(fd_err_pipe[1]);
 
-        exevvp("cat", NULL);
+        char *cat[2];
+        cat[0] = "cat";
+        cat[1] = NULL;
+        execvp(cat[0], cat);
         fprintf(stderr, "exec() failed in argument (none)\n"); return -1;
     } else {
-        if (bg_flag == 0)
+        if (bg_flag == 0) {
+            printf("here1\n");
             waitpid(child_pid, &status, 0);
+            printf("here2\n"); }
         else if (bg_flag == 1)
             waitpid(child_pid, &status, WNOHANG);
     }
+
+    return 0;
     /*
     i = j = k = temp = 0;
     while (i < count) {
@@ -94,13 +102,13 @@ int simple_shell(char **cmd, int count)
 
 int main(int argc, char *argv[])
 {
-    int cmd_len, count, i;
+    int  cmd_len, count, i;
     char s_ptr[MAXSIZE];
     char *d_ptr;
     char **cmd;
 
     if (argc == 1) {
-        while(1) {
+        while (1) {
             // Block process until an I/O event occurs
             printf("$ ");
             fgets(s_ptr, MAXSIZE, stdin);
