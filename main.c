@@ -26,7 +26,6 @@ int simple_shell(char **cmd, int count)
     int fd_pipe[2], fd_temp[2];
 
     pipe(fd_pipe);
-    pipe(fd_temp);
 
     bg_flag = 0;
     if (strcmp(cmd[count - 1], "&") == 0) { bg_flag = 1; count--; }
@@ -133,6 +132,7 @@ int simple_shell(char **cmd, int count)
 
         while (i < count) {
             if (strcmp(cmd[j], "|") == 0) {
+                pipe(fd_temp);
                 i++;
                 console_flag = err_flag = out_flag = 0;
                 for (j = i; j < count; j++) {
@@ -254,6 +254,7 @@ int simple_shell(char **cmd, int count)
                             close(fd_pipe[0]); close(fd_pipe[1]);
                             waitpid(child_pid, &status, WNOHANG);
                         }
+                        pipe(fd_pipe);
                     } j = i;
                 }
             }
