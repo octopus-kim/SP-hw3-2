@@ -1,19 +1,19 @@
 /*
  * Year     : 2020
  * Subject  : SystemProgramming
- * Homework : Simple shell program
+ * Homework : Simple Shell Program
  * StudentID: B511032
  * Name     : SungJo Kim
  */
 
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
 
 int MAXSIZE = 64;
 
@@ -344,9 +344,7 @@ int main(int argc, char *argv[])
             i++;
         }
 
-        if (simple_shell(cmd, count) < 0) {
-            return -1;
-        }
+        (simple_shell(cmd, count) < 0)
         return 0;
     }
 
