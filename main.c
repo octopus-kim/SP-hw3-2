@@ -25,7 +25,7 @@ int simple_shell(char **cmd, int count)
     int bg_flag, inp_flag, err_flag, out_flag, console_flag;
     int fd_temp[2];
 
-    if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, 0600)) < 0) {
+    if ((fdt = open("../C6C86208EF", O_RDWR | O_CREAT | O_TRUNC | O_NONBLOCK, 0600)) < 0) {
         fprintf(stderr, "ERROR open() to write\n"); return -1;
     }
 
