@@ -190,6 +190,7 @@ int simple_shell(char **cmd, int count)
                             waitpid(child_pid, &status, WNOHANG);
                     }
 
+                    while (remove("../C6C86208EF") < 0) close(fdt);
                     if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
