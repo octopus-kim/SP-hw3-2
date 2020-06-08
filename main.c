@@ -23,7 +23,6 @@ int simple_shell(char **cmd, int count)
     int fdi, fdo, fde, fdt;
     int child_pid, status;
     int bg_flag, inp_flag, err_flag, out_flag, console_flag;
-    int fd_temp[2];
 
     if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
         fprintf(stderr, "ERROR open() to write\n"); return -1;
@@ -165,6 +164,7 @@ int simple_shell(char **cmd, int count)
                 }
 
                 if (console_flag == 2) {
+                    int fd_temp[2];
                     pipe(fd_temp);
                     if ((fdt = open("../C6C86208EF", O_RDONLY)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
