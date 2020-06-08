@@ -20,13 +20,12 @@ int MAXSIZE = 64;
 int simple_shell(char **cmd, int count)
 {
     int i, j, k, temp;
-    int fdi, fdo, fde;
+    int fdi, fdo, fde, fdt;
     int child_pid, status;
     int bg_flag, inp_flag, err_flag, out_flag, console_flag;
-    int fd_pipe[2], fd_temp[2];
+    int fd_pipe[2];
 
     pipe(fd_pipe);
-    pipe(fd_temp);
 
     bg_flag = 0;
     if (strcmp(cmd[count - 1], "&") == 0) { bg_flag = 1; count--; }
@@ -165,6 +164,10 @@ int simple_shell(char **cmd, int count)
                 }
 
                 if (console_flag == 2) {
+                    if ((fdt = open("C6C86208EFE", O_RDWR| O_CREAT | O_TRUNC, 0600)) < 0) {
+                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
+                    }
+
                     if ((child_pid = fork()) < 0) {
                         fprintf(stderr, "ERROR fork()\n"); return -1;
                     }
@@ -174,8 +177,7 @@ int simple_shell(char **cmd, int count)
                             close(2); dup(fde); close(fde);
                         }
                         close(0); dup(fd_pipe[0]);
-                        close(1); dup(fd_temp[1]);
-                        close(fd_temp[0]); close(fd_temp[1]);
+                        close(1); dup(fdt); close(fdt);
                         close(fd_pipe[0]); close(fd_pipe[1]);
 
                         execvp(arr[0], arr);
@@ -192,12 +194,11 @@ int simple_shell(char **cmd, int count)
                     }
 
                     if (child_pid == 0) {
-                        close(0); dup(fd_temp[0]);
+                        close(0); dup(fdt); close(fdt);
                         close(1); dup(fd_pipe[1]);
-                        close(fd_temp[0]); close(fd_temp[1]);
                         close(fd_pipe[0]); close(fd_pipe[1]);
 
-                        execvp(arr[0], arr);
+                        execlp("cat", "cat", 0);
                         fprintf(stderr, "ERROR exec()\n"); return -1;
                     } else {
                         if (bg_flag == 0)
@@ -258,7 +259,7 @@ int simple_shell(char **cmd, int count)
                 i += 1; j += 1; break;
             }
         }
-    }
+    } sleep(1); close(fdt); remove("C6C86208EFE");
 }
 
 int main(int argc, char *argv[])
