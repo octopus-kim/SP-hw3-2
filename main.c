@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
             cmd[count - 1][i] = '\0';
 
             if (simple_shell(cmd, count) < 0) {
-                return -1;
+                fprintf(stderr, "check commend plz : %s\n", cmd);
             }
         }
     }
