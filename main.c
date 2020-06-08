@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
             }
 
             // Count input argument's number
-            cmd_len = strlen(s_ptr);
+            if ((cmd_len = strlen(s_ptr)) == 0) continue;
             count = 1;
             for (i = 0; i < cmd_len; i++) {
                 if (s_ptr[i] == ' ') count++;
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
             while (cmd[count - 1][i] != '\n') i++;
             cmd[count - 1][i] = '\0';
 
-            simple_shell(cmd, count)
+            simple_shell(cmd, count);
         }
     }
 
