@@ -77,17 +77,19 @@ int simple_shell(char **cmd, int count)
             }
         }
 
-        if (strcmp(cmd[j], ">") == 0) {
-            if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
-            } j += 2;
-            out_flag = 1;
-            if (j < count) {
-                if (strcmp(cmd[j], "2>") == 0) {
-                    if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
-                    } j += 2;
-                    err_flag = 1;
+        if (j < count) {
+            if (strcmp(cmd[j], ">") == 0) {
+                if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                    fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                } j += 2;
+                out_flag = 1;
+                if (j < count) {
+                    if (strcmp(cmd[j], "2>") == 0) {
+                        if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                            fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                        } j += 2;
+                        err_flag = 1;
+                    }
                 }
             }
         }
@@ -206,19 +208,19 @@ int simple_shell(char **cmd, int count)
                 }
 
                 else {
-                    if (strcmp(cmd[j], ">") == 0) {
-                        if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                            fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
-                        }
-                        j += 2;
-                        out_flag = 1;
-                        if (j < count) {
-                            if (strcmp(cmd[j], "2>") == 0) {
-                                if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                                    fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                    if (j < count) {
+                        if (strcmp(cmd[j], ">") == 0) {
+                            if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                                fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                            } j += 2;
+                            out_flag = 1;
+                            if (j < count) {
+                                if (strcmp(cmd[j], "2>") == 0) {
+                                    if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                                    } j += 2;
+                                    err_flag = 1;
                                 }
-                                j += 2;
-                                err_flag = 1;
                             }
                         }
                     }
