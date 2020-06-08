@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
             i++;
         }
 
-        (simple_shell(cmd, count) < 0)
+        (simple_shell(cmd, count) < 0);
         return 0;
     }
 
