@@ -26,7 +26,7 @@ int simple_shell(char **cmd, int count)
     int fd_pipe[2];
 
     pipe(fd_pipe);
-    if ((fdt = open("C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
+    if ((fdt = open("../C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
         fprintf(stderr, "ERROR open() to write\n"); return -1;
     }
 
@@ -167,7 +167,7 @@ int simple_shell(char **cmd, int count)
                 }
 
                 if (console_flag == 2) {
-                    if ((fdt = open("C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
+                    if ((fdt = open("../C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
 
@@ -200,7 +200,7 @@ int simple_shell(char **cmd, int count)
                         close(1); dup(fd_pipe[1]);
                         close(fd_pipe[0]); close(fd_pipe[1]);
 
-                        execlp("cat", "cat", "C6C86208EFE" 0);
+                        execlp("cat", "cat", "../C6C86208EFE", 0);
                         fprintf(stderr, "ERROR exec()\n"); return -1;
                     } else {
                         if (bg_flag == 0)
@@ -261,7 +261,7 @@ int simple_shell(char **cmd, int count)
                 i += 1; j += 1; break;
             }
         }
-    } sleep(1); close(fdt); remove("C6C86208EFE");
+    } sleep(1); close(fdt); remove("../C6C86208EFE");
 }
 
 int main(int argc, char *argv[])
