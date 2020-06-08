@@ -151,10 +151,6 @@ int simple_shell(char **cmd, int count)
                     console_flag = 1;
                 }
 
-                if ((fdt = open("../C6C86208EF", O_RDWR | O_CREAT | O_NONBLOCK, 0600)) < 0) {
-                    fprintf(stderr, "ERROR open() to write\n"); return -1;
-                }
-
                 if (err_flag == 1) {
                     temp = j - i - 2;
                     if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK, 0600)) < 0) {
@@ -190,6 +186,7 @@ int simple_shell(char **cmd, int count)
                             waitpid(child_pid, &status, WNOHANG);
                     }
 
+                    close(fdt);
                     if ((fdt = open("../C6C86208EF", O_RDWR | O_CREAT | O_TRUNC | O_NONBLOCK, 0600)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
