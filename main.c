@@ -20,7 +20,7 @@ int MAXSIZE = 64;
 int simple_shell(char **cmd, int count)
 {
     int i, j, k, temp;
-    int fdi, fdo, fde, fdt;
+    int fdi, fdo, fde;
     int child_pid, status;
     int bg_flag, inp_flag, err_flag, out_flag, console_flag;
     int fd_pipe[2];
@@ -268,7 +268,7 @@ int simple_shell(char **cmd, int count)
                 i += 1; j += 1; break;
             }
         }
-    } while (remove("../C6C86208EF") < 0) close(fdt);
+    }
 }
 
 int main(int argc, char *argv[])
