@@ -26,6 +26,9 @@ int simple_shell(char **cmd, int count)
     int fd_pipe[2];
 
     pipe(fd_pipe);
+    if ((fdt = open("C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
+        fprintf(stderr, "ERROR open() to write\n"); return -1;
+    }
 
     bg_flag = 0;
     if (strcmp(cmd[count - 1], "&") == 0) { bg_flag = 1; count--; }
@@ -164,8 +167,8 @@ int simple_shell(char **cmd, int count)
                 }
 
                 if (console_flag == 2) {
-                    if ((fdt = open("C6C86208EFE", O_RDWR| O_CREAT | O_TRUNC, 0600)) < 0) {
-                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
+                    if ((fdt = open("C6C86208EFE", O_RDWR | O_CREAT | O_TRUNC, 0600)) < 0) {
+                        fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
 
                     if ((child_pid = fork()) < 0) {
@@ -194,11 +197,10 @@ int simple_shell(char **cmd, int count)
                     }
 
                     if (child_pid == 0) {
-                        close(0); dup(fdt); close(fdt);
                         close(1); dup(fd_pipe[1]);
                         close(fd_pipe[0]); close(fd_pipe[1]);
 
-                        execlp("cat", "cat", 0);
+                        execlp("cat", "cat", "C6C86208EFE" 0);
                         fprintf(stderr, "ERROR exec()\n"); return -1;
                     } else {
                         if (bg_flag == 0)
