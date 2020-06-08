@@ -260,7 +260,7 @@ int simple_shell(char **cmd, int count)
                             close(fd_pipe[0]); close(fd_pipe[1]);
                             waitpid(child_pid, &status, WNOHANG);
                         }
-                    } j = i;
+                    } i = j;
                 }
             }
 
