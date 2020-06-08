@@ -269,6 +269,7 @@ int simple_shell(char **cmd, int count)
             }
         }
     }
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -312,7 +313,7 @@ int main(int argc, char *argv[])
             while (cmd[count - 1][i] != '\n') i++;
             cmd[count - 1][i] = '\0';
 
-            if (simple_shell(cmd, count) < 0) continue;
+            simple_shell(cmd, count)
         }
     }
 
