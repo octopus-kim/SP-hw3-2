@@ -25,7 +25,7 @@ int simple_shell(char **cmd, int count)
     int bg_flag, inp_flag, err_flag, out_flag, console_flag;
     int fd_temp[2];
 
-    if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+    if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
         fprintf(stderr, "ERROR open() to write\n"); return -1;
     }
 
@@ -58,7 +58,7 @@ int simple_shell(char **cmd, int count)
             temp = j - i;
         else if (inp_flag == 0 && err_flag == 1) {
             temp = j - i - 2;
-            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                 fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
             }
         }
@@ -73,20 +73,20 @@ int simple_shell(char **cmd, int count)
             if ((fdi = open(cmd[j - 3], O_RDONLY)) < 0) {
                 fprintf(stderr, "ERROR open() to read: %s\n", cmd[j - 3]); return -1;
             }
-            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                 fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
             }
         }
 
         if (j < count) {
             if (strcmp(cmd[j], ">") == 0) {
-                if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                     fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
                 } j += 2;
                 out_flag = 1;
                 if (j < count) {
                     if (strcmp(cmd[j], "2>") == 0) {
-                        if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                        if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                             fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
                         } j += 2;
                         err_flag = 1;
@@ -153,7 +153,7 @@ int simple_shell(char **cmd, int count)
 
                 if (err_flag == 1) {
                     temp = j - i - 2;
-                    if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                    if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                         fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
                     }
                 } else temp = j - i;
@@ -192,7 +192,7 @@ int simple_shell(char **cmd, int count)
                             waitpid(child_pid, &status, WNOHANG);
                     }
 
-                    if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                    if ((fdt = open("../C6C86208EF", O_WRONLY | O_TRUNC)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
 
@@ -221,13 +221,13 @@ int simple_shell(char **cmd, int count)
                 else {
                     if (j < count) {
                         if (strcmp(cmd[j], ">") == 0) {
-                            if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                            if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                                 fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
                             } j += 2;
                             out_flag = 1;
                             if (j < count) {
                                 if (strcmp(cmd[j], "2>") == 0) {
-                                    if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                                    if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                                         fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
                                     } j += 2;
                                     err_flag = 1;
