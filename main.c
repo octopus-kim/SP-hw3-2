@@ -164,8 +164,6 @@ int simple_shell(char **cmd, int count)
                     arr[k] = cmd[i]; i++;
                 }
 
-
-
                 if (console_flag == 2) {
                     pipe(fd_temp);
                     if ((fdt = open("../C6C86208EF", O_RDONLY)) < 0) {
@@ -192,7 +190,8 @@ int simple_shell(char **cmd, int count)
                             waitpid(child_pid, &status, WNOHANG);
                     }
 
-                    if ((fdt = open("../C6C86208EF", O_WRONLY | O_TRUNC)) < 0) {
+                    while (remove("../C6C86208EF") < 0) close(fdt);
+                    if ((fdt = open("../C6C86208EF", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
                         fprintf(stderr, "ERROR open() to write\n"); return -1;
                     }
 
