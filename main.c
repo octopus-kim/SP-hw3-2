@@ -64,7 +64,7 @@ int simple_shell(char **cmd, int count)
         else if (inp_flag == 1 && err_flag == 0) {
             temp = j - i - 2;
             if ((fdi = open(cmd[j - 1], O_RDONLY)) < 0) {
-                fprintf(stderr, "ERROR open() to read: %s\n", cmd[j - 3]); return -1;
+                fprintf(stderr, "ERROR open() to read: %s\n", cmd[j - 1]); return -1;
             }
         }
         else if (inp_flag == 1 && err_flag == 1) {
