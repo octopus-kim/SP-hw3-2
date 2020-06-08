@@ -28,7 +28,7 @@ int simple_shell(char **cmd, int count)
     pipe(fd_pipe);
     pipe(fd_temp);
 
-    bg_flag = arg_flag = 0;
+    bg_flag = 0;
     if (strcmp(cmd[count - 1], "&") == 0) { bg_flag = 1; count--; }
 
     i = j = k = temp = 0;
@@ -146,7 +146,7 @@ int simple_shell(char **cmd, int count)
                     else if (strcmp(cmd[j], ";") == 0) {
                         console_flag = 1; break;
                     }
-                    console_flag = 1
+                    console_flag = 1;
                 }
 
                 if (err_flag == 1) {
