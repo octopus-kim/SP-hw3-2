@@ -20,264 +20,240 @@ int MAXSIZE = 64;
 int simple_shell(char **cmd, int count)
 {
     int i, j, k, temp;
-    int fd;
+    int fdi, fdo, fde;
     int child_pid, status;
-    int bg_flag, input_flag;
-    int fd_pipe[2], fd_err_pipe[2];
+    int bg_flag, inp_flag, err_flag, out_flag, console_flag;
+    int fd_pipe[2], fd_temp[2];
 
     pipe(fd_pipe);
-    pipe(fd_err_pipe);
+    pipe(fd_temp);
 
-    bg_flag = 0;
+    bg_flag = arg_flag = 0;
     if (strcmp(cmd[count - 1], "&") == 0) { bg_flag = 1; count--; }
 
     i = j = k = temp = 0;
     while (i < count) {
+        inp_flag = err_flag = out_flag = 0;
         for (j = i; j < count; j++) {
             if (strcmp(cmd[j], "<") == 0) {
-                input_flag = 1; break;
+                inp_flag = 1; continue;
             }
-            else if (strcmp(cmd[j], "|") == 0 || strcmp(cmd[j], ">") == 0 ||
-                     strcmp(cmd[j], ";") == 0 || strcmp(cmd[j], "2>") == 0) {
-                input_flag = 0; break;
+            else if (strcmp(cmd[j], ">") == 0) {
+                console_flag = 0; break;
             }
-            input_flag = -1;
+            else if (strcmp(cmd[j], "2>") == 0) {
+                err_flag = 1; continue;
+            }
+            else if (strcmp(cmd[j], "|") == 0) {
+                console_flag = 0; break;
+            }
+            else if (strcmp(cmd[j], ";") == 0) {
+                console_flag = 1; break;
+            }
+            console_flag = 1;
         }
 
-        if (input_flag == -1) {
-            temp = count - i;
-            char* arr[temp + 1];
-            arr[temp] = NULL;
-            for (k = 0; k < temp; k++) {
-                arr[k] = cmd[i]; i++;
-            }
-
-            if ((child_pid = fork()) < 0) {
-                fprintf(stderr, "fork() failed when commend has no redirection or behind of \";\"\n"); return -1;
-            }
-
-            if (child_pid == 0) {
-                execvp(arr[0], arr);
-                fprintf(stderr, "exec() failed when commend has no redirection or behind of \";\"\n"); return -1;
-            } else {
-                if (bg_flag == 0) {
-                    waitpid(child_pid, &status, 0); break;
-                }
-                else if (bg_flag == 1) {
-                    waitpid(child_pid, &status, WNOHANG); break;
-                }
-            }
-        }
-
-        else if (input_flag == 1) {
+        if (inp_flag == 0 && err_flag == 0)
             temp = j - i;
-            char *arr[temp + 1];
-            arr[temp] = NULL;
-            for (k = 0; k < temp; k++) {
-                arr[k] = cmd[i]; i++;
-            }
-
-            if ((fd = open(cmd[j + 1], O_RDONLY)) < 0) {
-                fprintf(stderr, "File : %s is failed in open() to read STDIN\n", cmd[j + 1]); return -1;
-            }
-
-            if ((child_pid = fork()) < 0) {
-                fprintf(stderr, "fork() is failed when input is file\n"); return -1;
-            }
-
-            if (child_pid == 0) {
-                close(0); dup(fd); close(fd);
-                close(1); dup(fd_pipe[1]); close(fd_pipe[0]); close(fd_pipe[1]);
-                close(2); dup(fd_err_pipe[1]); close(fd_err_pipe[0]); close(fd_err_pipe[1]);
-
-                execvp(arr[0], arr);
-                fprintf(stderr, "exec() is failed when input is file\n"); return -1;
-            } else {
-                if (bg_flag == 0)
-                    waitpid(child_pid, &status, 0);
-                else if (bg_flag == 1)
-                    waitpid(child_pid, &status, WNOHANG);
-            }
-            i += 2; j += 2;
-        }
-
-        else if (input_flag == 0) {
-            temp = j - i;
-            char *arr[temp + 1];
-            arr[temp] = NULL;
-            for (k = 0; k < temp; k++) {
-                arr[k] = cmd[i]; i++;
-            }
-
-            if ((child_pid = fork()) < 0) {
-                fprintf(stderr, "fork() is failed when input is STDIN\n"); return -1;
-            }
-
-            if (child_pid == 0) {
-                close(1); dup(fd_pipe[1]); close(fd_pipe[0]); close(fd_pipe[1]);
-                close(2); dup(fd_err_pipe[1]); close(fd_err_pipe[0]); close(fd_err_pipe[1]);
-
-                execvp(arr[0], arr);
-                fprintf(stderr, "exec() is failed when input is STDIN\n"); return -1;
-            } else {
-                if (bg_flag == 0)
-                    waitpid(child_pid, &status, 0);
-                else if (bg_flag == 1)
-                    waitpid(child_pid, &status, WNOHANG);
+        else if (inp_flag == 0 && err_flag == 1) {
+            temp = j - i - 2;
+            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
             }
         }
+        else if (inp_flag == 1 && err_flag == 0) {
+            temp = j - i - 2;
+            if ((fdi = open(cmd[j - 1], O_RDONLY)) < 0) {
+                fprintf(stderr, "ERROR open() to read: %s\n", cmd[j - 3]); return -1;
+            }
+        }
+        else if (inp_flag == 1 && err_flag == 1) {
+            temp = j - i - 4;
+            if ((fdi = open(cmd[j - 3], O_RDONLY)) < 0) {
+                fprintf(stderr, "ERROR open() to read: %s\n", cmd[j - 3]); return -1;
+            }
+            if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
+            }
+        }
+
+        if (strcmp(cmd[j], ">") == 0) {
+            if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+            } j += 2;
+            out_flag = 1;
+            if (j < count) {
+                if (strcmp(cmd[j], "2>") == 0) {
+                    if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                    } j += 2;
+                    err_flag = 1;
+                }
+            }
+        }
+
+        char* arr[temp + 1];
+        arr[temp] = NULL;
+        for (k = 0; k < temp; k++) {
+            arr[k] = cmd[i]; i++;
+        }
+
+        if ((child_pid = fork()) < 0) {
+            fprintf(stderr, "ERROR fork()\n"); return -1;
+        }
+
+        if (child_pid == 0) {
+            if (inp_flag == 1) {
+                close(0); dup(fdi); close(fdi);
+            }
+            if (console_flag == 0) {
+                if (out_flag == 1) {
+                    close(1); dup(fdo); close(fdo);
+                }
+                else {
+                    close(1); dup(fd_pipe[1]);
+                }
+            }
+            if (err_flag == 1) {
+                close(2); dup(fde); close(fde);
+            }
+            close(fd_pipe[0]); close(fd_pipe[1]);
+
+            execvp(arr[0], arr);
+            fprintf(stderr, "ERROR exec()\n"); return -1;
+        } else {
+            if (bg_flag == 0)
+                waitpid(child_pid, &status, 0);
+            else if (bg_flag == 1)
+                waitpid(child_pid, &status, WNOHANG);
+        } i = j;
+
 
         while (i < count) {
             if (strcmp(cmd[j], "|") == 0) {
+                i++;
+                console_flag = err_flag = out_flag = 0;
                 for (j = i; j < count; j++) {
-                    if (strcmp(cmd[j], "|") == 0 || strcmp(cmd[j], ">") == 0
-                        || strcmp(cmd[j], ";") == 0 || strcmp(cmd[j], "2>") == 0)
-                        break;
+                    if (strcmp(cmd[j], ">") == 0) {
+                        console_flag = 0; break;
+                    }
+                    else if (strcmp(cmd[j], "2>") == 0) {
+                        err_flag = 1; continue;
+                    }
+                    else if (strcmp(cmd[j], "|") == 0) {
+                        console_flag = 2; break;
+                    }
+                    else if (strcmp(cmd[j], ";") == 0) {
+                        console_flag = 1; break;
+                    }
+                    console_flag = 1
                 }
 
-                if (j == count) {
-                    temp = count - i;
-                    char *arr[temp + 1];
-                    arr[temp] = NULL;
-                    for (k = 0; k < temp; k++) {
-                        arr[k] = cmd[i]; i++;
+                if (err_flag == 1) {
+                    temp = j - i - 2;
+                    if ((fde = open(cmd[j - 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                        fprintf(stderr, "ERROR open() to write: %s\n", cmd[j - 1]); return -1;
                     }
+                } else temp = j - i;
 
+                char *arr[temp + 1];
+                arr[temp] = NULL;
+                for (k = 0; k < temp; k++) {
+                    arr[k] = cmd[i]; i++;
+                }
+
+                if (console_flag == 2) {
                     if ((child_pid = fork()) < 0) {
-                        fprintf(stderr, "fork() is failed when pipeline\n"); return -1;
+                        fprintf(stderr, "ERROR fork()\n"); return -1;
                     }
 
                     if (child_pid == 0) {
-                        close(0); dup(fd_pipe[0]); close(fd_pipe[0]); close(fd_pipe[1]);
+                        if (err_flag == 1) {
+                            close(2); dup(fde); close(fde);
+                        }
+                        close(0); dup(fd_pipe[0]);
+                        close(1); dup(fd_temp[1]);
+                        close(fd_temp[0]); close(fd_temp[1]);
+                        close(fd_pipe[0]); close(fd_pipe[1]);
 
                         execvp(arr[0], arr);
-                        fprintf(stderr, "exec() is failed when pipeline\n"); return -1;
+                        fprintf(stderr, "ERROR exec()\n"); return -1;
                     } else {
                         if (bg_flag == 0)
                             waitpid(child_pid, &status, 0);
                         else if (bg_flag == 1)
                             waitpid(child_pid, &status, WNOHANG);
                     }
-                    break;
+
+                    if ((child_pid = fork()) < 0) {
+                        fprintf(stderr, "ERROR fork()\n"); return -1;
+                    }
+
+                    if (child_pid == 0) {
+                        close(0); dup(fd_temp[0]);
+                        close(1); dup(fd_pipe[1]);
+                        close(fd_temp[0]); close(fd_temp[1]);
+                        close(fd_pipe[0]); close(fd_pipe[1]);
+
+                        execvp(arr[0], arr);
+                        fprintf(stderr, "ERROR exec()\n"); return -1;
+                    } else {
+                        if (bg_flag == 0)
+                            waitpid(child_pid, &status, 0);
+                        else if (bg_flag == 1)
+                            waitpid(child_pid, &status, WNOHANG);
+                    }
                 }
 
                 else {
-                    temp = j - i;
-                    char *arr[temp + 1];
-                    arr[temp] = NULL;
-                    for (k = 0; k < temp; k++) {
-                        arr[k] = cmd[i]; i++;
+                    if (strcmp(cmd[j], ">") == 0) {
+                        if ((fdo = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                            fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                        }
+                        j += 2;
+                        out_flag = 1;
+                        if (j < count) {
+                            if (strcmp(cmd[j], "2>") == 0) {
+                                if ((fde = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
+                                    fprintf(stderr, "ERROR open() to write: %s\n", cmd[j + 1]); return -1;
+                                }
+                                j += 2;
+                                err_flag = 1;
+                            }
+                        }
                     }
 
-                    int temp_pipe[2];
-                    pipe(temp_pipe);
-
                     if ((child_pid = fork()) < 0) {
-                        fprintf(stderr, "fork() is failed when pipeline\n"); return -1;
+                        fprintf(stderr, "ERROR fork()\n"); return -1;
                     }
 
                     if (child_pid == 0) {
-                        close(0); dup(fd_pipe[0]); close(fd_pipe[0]); close(fd_pipe[1]);
-                        close(1); dup(temp_pipe[1]); close(temp_pipe[0]); close(temp_pipe[1]);
-                        close(2); dup(fd_err_pipe[1]); close(fd_err_pipe[0]); close(fd_err_pipe[1]);
+                        if (console_flag == 0) {
+                            if (out_flag == 1) {
+                                close(1); dup(fdo); close(fdo);
+                            } else {
+                                close(1); dup(fd_pipe[1]);
+                            }
+                        }
+                        if (err_flag == 1) {
+                            close(2); dup(fde); close(fde);
+                        }
+                        close(0); dup(fd_pipe[0]);
+                        close(fd_pipe[0]); close(fd_pipe[1]);
 
                         execvp(arr[0], arr);
-                        fprintf(stderr, "exec() is failed when pipeline\n"); return -1;
+                        fprintf(stderr, "ERROR exec()\n"); return -1;
                     } else {
                         if (bg_flag == 0)
                             waitpid(child_pid, &status, 0);
                         else if (bg_flag == 1)
                             waitpid(child_pid, &status, WNOHANG);
-                    }
-
-                    int child_pid2;
-                    if ((child_pid2 = fork()) < 0) {
-                        fprintf(stderr, "fork() is failed when pipeline\n"); return -1;
-                    }
-
-                    if (child_pid2 == 0) {
-                        close(0); dup(temp_pipe[0]); close(temp_pipe[0]); close(temp_pipe[1]);
-                        close(1); dup(fd_pipe[1]); close(fd_pipe[0]); close(fd_pipe[1]);
-
-                        execlp("cat", "cat", 0);
-                        fprintf(stderr, "exec() is failed when pipeline\n"); return -1;
-                    } else {
-                        if (bg_flag == 0)
-                            waitpid(child_pid, &status, WNOHANG);
-                        else if (bg_flag == 1)
-                            waitpid(child_pid, &status, WNOHANG);
-                    }
+                    } j = i;
                 }
-            }
-
-            else if (strcmp(cmd[j], ">") == 0) {
-                if ((fd = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                    fprintf(stderr, "File : %s is failed in open() to write STDOUT\n", cmd[j + 1]); return -1;
-                }
-
-                if ((child_pid = fork()) < 0) {
-                    fprintf(stderr, "fork() is failed when STDOUT is file\n"); return -1;
-                }
-
-                if (child_pid == 0) {
-                    close(0); dup(fd_pipe[0]); close(fd_pipe[0]); close(fd_pipe[1]);
-                    close(1); dup(fd); close(fd);
-                    close(fd_err_pipe[0]); close(fd_err_pipe[1]);
-
-                    execlp("cat", "cat", 0);
-                    fprintf(stderr, "exec() is failed when STDOUT is file\n"); return -1;
-                } else {
-                    if (bg_flag == 0)
-                        waitpid(child_pid, &status, WNOHANG);
-                    else if (bg_flag == 1)
-                        waitpid(child_pid, &status, WNOHANG);
-                }
-                i += 2; j += 2;
-            }
-
-            else if (strcmp(cmd[j], "2>") == 0) {
-                if ((fd = open(cmd[j + 1], O_WRONLY | O_CREAT, 0600)) < 0) {
-                    fprintf(stderr, "File : %s is failed in open() to write STDERR\n", cmd[j + 1]); return -1;
-                }
-
-                if ((child_pid = fork()) < 0) {
-                    fprintf(stderr, "fork() is failed when STDERR is file\n"); return -1;
-                }
-
-                if (child_pid == 0) {
-                    close(0); dup(fd_err_pipe[0]); close(fd_err_pipe[0]); close(fd_err_pipe[1]);
-                    close(1); dup(fd); close(fd);
-                    close(fd_pipe[0]); close(fd_pipe[1]);
-
-                    execlp("cat", "cat", 0);
-                    fprintf(stderr, "exec() is failed when STDERR is file\n"); return -1;
-                } else {
-                    if (bg_flag == 0)
-                        waitpid(child_pid, &status, WNOHANG);
-                    else if (bg_flag == 1)
-                        waitpid(child_pid, &status, WNOHANG);
-                }
-                i += 2; j += 2;
             }
 
             else if (strcmp(cmd[j], ";") == 0) {
-                if ((child_pid = fork()) < 0) {
-                    fprintf(stderr, "fork() is failed\n"); return -1;
-                }
-
-                if (child_pid == 0) {
-                    close(0); dup(fd_pipe[0]); close(fd_pipe[0]); close(fd_pipe[1]);
-                    close(fd_err_pipe[0]); close(fd_err_pipe[1]);
-
-                    execlp("cat", "cat", 0);
-                    fprintf(stderr, "exec() is failed\n"); return -1;
-                } else {
-                    if (bg_flag == 0)
-                        waitpid(child_pid, &status, WNOHANG);
-                    else if (bg_flag == 1)
-                        waitpid(child_pid, &status, WNOHANG);
-                }
-                i = j += 1;
+                i += 1; j += 1; break;
             }
         }
     }
