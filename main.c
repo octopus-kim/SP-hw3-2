@@ -261,7 +261,7 @@ int simple_shell(char **cmd, int count)
                 i += 1; j += 1; break;
             }
         }
-    } if (remove("../C6C86208EFE") < 0) close(fdt);
+    } while (remove("../C6C86208EFE") < 0) close(fdt);
 }
 
 int main(int argc, char *argv[])
